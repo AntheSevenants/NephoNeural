@@ -1,0 +1,3 @@
+[submodule "anthevec"]
+	path = anthevec
+	url = https://github.com/AntheSevenants/anthevec.git
