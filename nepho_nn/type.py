@@ -2,6 +2,7 @@ import numpy as np
 
 from anthevec.anthevec.embedding_retriever import EmbeddingRetriever
 from .model_collection import ModelCollection
+from .model import Model
 from tqdm.auto import tqdm
 
 from sklearn.metrics import pairwise_distances
