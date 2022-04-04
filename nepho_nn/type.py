@@ -157,16 +157,11 @@ class Type:
             model_matrix.append(row)
         
         model_matrix = np.array(model_matrix)
-            
-        # --- MDS ---
-        # Apply multi-dimensional scaling
-        mds = MDS(random_state=0, dissimilarity='precomputed') # TODO: Euclidean or manhattan distances?
-        self.model_collection.mds_distance_matrix = mds.fit_transform(model_matrix)
-            
-        # Stress?
-        stress = mds.stress_
-        
-        # --- TSNE ---
-        # Apply TSNE
-        tsne = TSNE(random_state=0) # TODO: what perplexity?
-        self.model_collection.tsne_distance_matrix = tsne.fit_transform(model_matrix)
+
+        # Will hold all reduced distance matrices
+        self.solutions = {}
+
+        # We do a dimension reduction on the distance matrix for each registered technique
+        for dimension_reduction_technique in self.dimension_reduction_techniques:
+            self.solutions[dimension_reduction_technique.name] = \
+                    dimension_reduction_technique.reduce_model(model_matrix)
