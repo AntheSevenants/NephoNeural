@@ -5,13 +5,29 @@ from .model_collection import ModelCollection
 from tqdm.auto import tqdm
 
 class Type:
-    def __init__(self, lemma, sentences, layer_indices, dimension_reduction_techniques):
+    def __init__(self,
+                 lemma,
+                 sentences,
+                 bert_model,
+                 tokenizer,
+                 nlp,
+                 layer_indices,
+                 dimension_reduction_techniques):
         print("Processing \"{}\"".format(lemma))
+
+        # Type-related arguments
         self.lemma = lemma
         self.pos = "miep"
         self.source = "hallo"
         self.sentences = sentences
+
+        # NLP technology arguments
+        self.bert_model = bert_model
+        self.tokenizer = tokenizer
+        self.nlp = nlp
         self.layer_indices = layer_indices
+
+        # Dimension reduction 
         self.dimension_reduction_techniques = dimension_reduction_techniques
         
         self.model_collection = ModelCollection()
