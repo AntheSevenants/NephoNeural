@@ -5,3 +5,6 @@ class DimensionReductionTechnique:
         
     def reduce(self, data):
         raise Exception("Reduction not implemented. Please override this method.")
+
+    def reduce_model(self, data);
+        self.reduce(data)
