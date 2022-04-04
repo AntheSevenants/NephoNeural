@@ -59,7 +59,10 @@ class Type:
         for sentence in tqdm(self.sentences):
             # Create hidden representations for the entire sentence. This creates representations for all
             # twelve layers in the network (plus the embedding layer).
-            embedding_retriever = EmbeddingRetriever(bert_model, tokenizer, nlp, [ sentence ])
+            embedding_retriever = EmbeddingRetriever(self.bert_model,
+                                                     self.tokenizer,
+                                                     self.nlp,
+                                                     [ sentence ])
             
             # The token corresponding to our type might be inflected, or in some other form.
             # We use the spaCy tokenised forms to find the corresponding lemmas
