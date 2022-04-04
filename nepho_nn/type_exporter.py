@@ -80,9 +80,13 @@ class TypeExporter:
         for model_name in type_inst.model_names:
             model_index = type_inst.model_names.index(model_name)
             
+            # For the model coordinates, we just pick the first solution available
+            # TODO: make this configurable
+            chosen_solution = list(type_inst.solutions.keys())[0]
+
             row = { "_model": model_name,
-                    "model.x": type_inst.model_collection.mds_distance_matrix[model_index][0],
-                    "model.y": type_inst.model_collection.mds_distance_matrix[model_index][1],
+                    "model.x": type_inst.solutions[chosen_solution][model_index][0],
+                    "model.y": type_inst.solutions[chosen_solution][model_index][1],
                     "foc_model_type": type_inst.model_collection.models[model_name].metadata["architecture"],
                     "foc_layer": type_inst.model_collection.models[model_name].metadata["layer"]
                   }
