@@ -1,5 +1,7 @@
 import numpy as np
 
+from anthevec.anthevec.embedding_retriever import EmbeddingRetriever
+
 class Type:
     def __init__(self, lemma, sentences, layer_indices, dimension_reduction_techniques):
         print("Processing \"{}\"".format(lemma))
