@@ -1,3 +1,6 @@
+import json
+import pandas as pd
+
 class FileWriter:
     def write(path, content, content_type=False):
         if content_type == "json":
