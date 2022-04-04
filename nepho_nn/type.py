@@ -4,6 +4,8 @@ from anthevec.anthevec.embedding_retriever import EmbeddingRetriever
 from .model_collection import ModelCollection
 from tqdm.auto import tqdm
 
+from sklearn.metrics import pairwise_distances
+
 class Type:
     def __init__(self,
                  lemma,
