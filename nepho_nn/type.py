@@ -1,6 +1,8 @@
 import numpy as np
 
 from anthevec.anthevec.embedding_retriever import EmbeddingRetriever
+from .model_collection import ModelCollection
+from tqdm.auto import tqdm
 
 class Type:
     def __init__(self, lemma, sentences, layer_indices, dimension_reduction_techniques):
