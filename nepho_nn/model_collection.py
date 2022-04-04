@@ -1,3 +1,5 @@
+from nepho_nn.model import Model
+
 class ModelCollection:
     def __init__(self):
         self.models = {}
