@@ -1,4 +1,5 @@
 import numpy as np
+import itertools
 
 from anthevec.anthevec.embedding_retriever import EmbeddingRetriever
 from .model_collection import ModelCollection
@@ -14,8 +15,9 @@ class Type:
                  bert_model,
                  tokenizer,
                  nlp,
+                 dimension_reduction_techniques,
                  layer_indices,
-                 dimension_reduction_techniques):
+                 attention_head_indices=[ None ]):
         print("Processing \"{}\"".format(lemma))
 
         # Type-related arguments
@@ -23,6 +25,9 @@ class Type:
         self.pos = "miep"
         self.source = "hallo"
         self.sentences = sentences
+
+        if len(self.sentences) < 4:
+            print("Warning: level 3 dimension reduction may fail because fewer than 4 sentences are given.")
 
         # NLP technology arguments
         self.bert_model = bert_model
@@ -32,6 +37,22 @@ class Type:
 
         # Dimension reduction 
         self.dimension_reduction_techniques = dimension_reduction_techniques
+
+        # We want to get a model for each combination of arguments
+        # e.g. if we are interested in layers 0, 1 and heads 1, 2,
+        # we want to have the following models:
+        # LAYER HEAD
+        #     0    1
+        #     0    2
+        #     1    1
+        #     1    2
+        # To this end, we use itertools.product
+        parameters = { "layer_index": layer_indices,
+                        "attention_head_index": attention_head_indices }
+        self.parameter_combinations = list(dict(zip(parameters, x)) for x in itertools.product(*parameters.values()))
+
+        if len(self.parameter_combinations) < 4:
+            print("Warning: level 1 dimension reduction may fail because fewer than 4 models will be generated.")
         
         self.model_collection = ModelCollection()
         
@@ -39,7 +60,7 @@ class Type:
         
         # Register model names
         self.model_names = self.model_collection.get_model_names()
-        
+
         self.do_level_3_dimension_reduction()
         self.create_similarity_matrices()
         self.create_distance_matrix()
@@ -51,50 +72,72 @@ class Type:
         token_vector_list = []
         
         # Create an empty list for all tokens
+        embedding_retrievers = []
         self.token_list = []
         self.token_ids = []
-        
-        # Create an empty list for each layer we are interested in
-        layer_list = { layer_index: [] for layer_index in self.layer_indices }
+        self.token_indices = []
 
         # Go over each corpus sentence for this type
-        i = 0
-        for sentence in tqdm(self.sentences):
+        for i, sentence in tqdm(enumerate(self.sentences), total=len(self.sentences)):
             # Create hidden representations for the entire sentence. This creates representations for all
             # twelve layers in the network (plus the embedding layer).
             embedding_retriever = EmbeddingRetriever(self.bert_model,
                                                      self.tokenizer,
                                                      self.nlp,
                                                      [ sentence["sentence"] ])
-            
-            # We collect actual token text
-            tokens = list(map(lambda token: token.text, embedding_retriever.tokens[0]))
+
+            # Add this embedding retriever object
+            embedding_retrievers.append(embedding_retriever)
     
             # The index of the token is pre-supplied, so we can just take it from the sentence object
+            # Add the token index to the list of token indices
             token_index = sentence["token_index"]
+            self.token_indices.append(token_index)
     
             # Add this type instantiation / token to the list of tokens
-            self.token_list.append(tokens[token_index])
+            self.token_list.append(embedding_retriever.tokens[0][token_index].text)
             
             # Add the id for this token to the list of token ids
             self.token_ids.append(sentence["token_id"])
+
+            word_piece_index = embedding_retriever.correspondence[0][token_index]
                 
-            # Go over each layer we want to know about, and save the hidden state from that layer
-            # We only save the hidden state for the specific token we are interested in
-            for layer_index in self.layer_indices:
-                layer_list[layer_index].append(embedding_retriever.get_hidden_state(0, token_index, [ layer_index ]))
-                
-            i += 1
-                
-        # Create models based on layers
-        for layer_index in layer_list:  
-            # Create a model for each layer
-            model = Model("layer_{}".format(layer_index), { "architecture": "BERT", "layer": layer_index })
-            model.hidden_states = layer_list[layer_index]
-            
-            # Register the model
+        print("Going over parameter combinations...")
+        # Go over each parameter combination that was precomputed and create a model for this combination
+        for parameter_combination in tqdm(self.parameter_combinations):
+            attention_heads = [ parameter_combination["attention_head_index"] ] if \
+                                parameter_combination["attention_head_index"] is not None \
+                                else None
+
+            # Put together the model name
+            layer_index_text = str(parameter_combination["layer_index"])
+            attention_head_index_text = str(parameter_combination["attention_head_index"]) if \
+                                            parameter_combination["attention_head_index"] is not None \
+                                            else "no"
+
+            model_name = f"{self.lemma}.layer{layer_index_text}.head{attention_head_index_text}"
+
+            # Create a model based on the parameters
+            model = Model(model_name,
+                          { "architecture": "BERT",
+                            "layer": f"layer{layer_index_text}",
+                            "head": f"head{attention_head_index_text}"
+                          })
+
+            # Get the hidden states for all sentences
+            hidden_states = []
+            for i, sentence in enumerate(self.sentences):
+                hidden_state = embedding_retrievers[i].get_hidden_state(0,
+                                                                        self.token_indices[i],
+                                                                        [ parameter_combination["layer_index"] ],
+                                                                        attention_heads)
+
+                hidden_states.append(hidden_state) 
+
+            model.hidden_states = hidden_states
+
             self.model_collection.register_model(model)
-                    
+
     def do_level_3_dimension_reduction(self):
         print("Applying dimension reduction (level 3)...")
         
