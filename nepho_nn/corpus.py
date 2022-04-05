@@ -12,5 +12,7 @@ class Corpus:
 						   "token_id": token_id,
 						   "file": file }
 
+		self.sentences.append(sentence_entry)
+
 	def get_sentence(self, sentence_id):
 		return self.sentences[sentence_id]
