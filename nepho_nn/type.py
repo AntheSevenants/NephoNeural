@@ -65,26 +65,20 @@ class Type:
             embedding_retriever = EmbeddingRetriever(self.bert_model,
                                                      self.tokenizer,
                                                      self.nlp,
-                                                     [ sentence ])
+                                                     [ sentence["sentence"] ])
             
-            # The token corresponding to our type might be inflected, or in some other form.
-            # We use the spaCy tokenised forms to find the corresponding lemmas
-            lemmas = list(map(lambda token: token.lemma_, embedding_retriever.tokens[0]))
-            # We also do the same to find the actual tokens
+            # We collect actual token text
             tokens = list(map(lambda token: token.text, embedding_retriever.tokens[0]))
     
-            # The index of the token is the index of the type we are interested in
-            # e.g. "I am going to the supermarket"
-            #      "I be go to the supermarket"
-            # lemma = go, index = 2 -> we find "going" in the token list
-            token_index = lemmas.index(self.lemma)
+            # The index of the token is pre-supplied, so we can just take it from the sentence object
+            token_index = sentence["token_index"]
     
             # Add this type instantiation / token to the list of tokens
             self.token_list.append(tokens[token_index])
             
             # Add the id for this token to the list of token ids
-            self.token_ids.append("{}/{}/{}/{}".format(self.lemma, self.pos, self.source, i))
-    
+            self.token_ids.append(sentence["token_id"])
+                
             # Go over each layer we want to know about, and save the hidden state from that layer
             # We only save the hidden state for the specific token we are interested in
             for layer_index in self.layer_indices:
