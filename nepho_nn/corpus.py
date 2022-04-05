@@ -1,7 +1,7 @@
 class Corpus:
 	def __init__(self, lemma):
 		self.lemma = lemma
-		self.sentences = {}
+		self.sentences = []
 
 	# Sentence: the sentence where the token occurs (list!)
 	# Token index: the zero-based index of that token
