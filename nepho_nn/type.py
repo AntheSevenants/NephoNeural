@@ -65,6 +65,18 @@ class Type:
         self.create_similarity_matrices()
         self.create_distance_matrix()
         self.do_level_1_dimension_reduction()
+
+    # Put together the model name
+    def get_model_name(self, parameter_combination):
+        layer_index_text = str(parameter_combination["layer_index"])
+        attention_head_index_text = str(parameter_combination["attention_head_index"]) if \
+                                        parameter_combination["attention_head_index"] is not None \
+                                        else "no"
+
+        model_name = f"{self.lemma}.layer{layer_index_text}.head{attention_head_index_text}"
+
+        return model_name
+
         
     def get_token_vectors(self):
         print("Retrieving hidden states for all tokens...")
@@ -72,10 +84,30 @@ class Type:
         token_vector_list = []
         
         # Create an empty list for all tokens
-        embedding_retrievers = []
         self.token_list = []
         self.token_ids = []
         self.token_indices = []
+
+        # This is how it's gonna work. We will keep all vector data in a large dict.
+        # key = model name
+        # Then, we go over each sentence, and piece together a vector for each parameter combination.
+        # We could also just save the embedding retriever for each sentence and piece together the vectors later,
+        # but then you'll quickly run out of RAM.
+        #
+        # Trust me. I've tried.
+        models = {}
+        models_meta = {}
+        for parameter_combination in self.parameter_combinations:
+            model_name = self.get_model_name(parameter_combination)
+
+            # Create a list for this model
+            models[model_name] = []
+
+            models_meta[model_name] = { "architecture": "BERT",
+                                        "layer": f"layer{parameter_combination['layer_index']}",
+                                        "head": f"head{parameter_combination['attention_head_index']}"
+                                      }
+
 
         # Go over each corpus sentence for this type
         for i, sentence in tqdm(enumerate(self.sentences), total=len(self.sentences)):
@@ -86,13 +118,8 @@ class Type:
                                                      self.nlp,
                                                      [ sentence["sentence"] ])
 
-            # Add this embedding retriever object
-            embedding_retrievers.append(embedding_retriever)
-    
             # The index of the token is pre-supplied, so we can just take it from the sentence object
-            # Add the token index to the list of token indices
             token_index = sentence["token_index"]
-            self.token_indices.append(token_index)
     
             # Add this type instantiation / token to the list of tokens
             self.token_list.append(embedding_retriever.tokens[0][token_index].text)
@@ -100,41 +127,25 @@ class Type:
             # Add the id for this token to the list of token ids
             self.token_ids.append(sentence["token_id"])
 
-            word_piece_index = embedding_retriever.correspondence[0][token_index]
-                
-        print("Going over parameter combinations...")
-        # Go over each parameter combination that was precomputed and create a model for this combination
-        for parameter_combination in tqdm(self.parameter_combinations):
-            attention_heads = [ parameter_combination["attention_head_index"] ] if \
-                                parameter_combination["attention_head_index"] is not None \
-                                else None
+            # Go over each parameter combination that was precomputed and get the hidden state
+            for parameter_combination in self.parameter_combinations:
+                attention_heads = [ parameter_combination["attention_head_index"] ] if \
+                                    parameter_combination["attention_head_index"] is not None \
+                                    else None
 
-            # Put together the model name
-            layer_index_text = str(parameter_combination["layer_index"])
-            attention_head_index_text = str(parameter_combination["attention_head_index"]) if \
-                                            parameter_combination["attention_head_index"] is not None \
-                                            else "no"
+                hidden_state = embedding_retriever.get_hidden_state(0,
+                                                                    token_index,
+                                                                    [ parameter_combination["layer_index"] ],
+                                                                    attention_heads)
 
-            model_name = f"{self.lemma}.layer{layer_index_text}.head{attention_head_index_text}"
+                model_name = self.get_model_name(parameter_combination)
+                models[model_name].append(hidden_state)
+        
 
-            # Create a model based on the parameters
-            model = Model(model_name,
-                          { "architecture": "BERT",
-                            "layer": f"layer{layer_index_text}",
-                            "head": f"head{attention_head_index_text}"
-                          })
-
-            # Get the hidden states for all sentences
-            hidden_states = []
-            for i, sentence in enumerate(self.sentences):
-                hidden_state = embedding_retrievers[i].get_hidden_state(0,
-                                                                        self.token_indices[i],
-                                                                        [ parameter_combination["layer_index"] ],
-                                                                        attention_heads)
-
-                hidden_states.append(hidden_state) 
-
-            model.hidden_states = hidden_states
+        # Register each model
+        for model_name in models:
+            model = Model(model_name, models_meta[model_name])
+            model.hidden_states = models[model_name]
 
             self.model_collection.register_model(model)
 
