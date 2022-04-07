@@ -66,10 +66,14 @@ class TypeExporter:
             # Write lemma.{solution}.tsv file
             self.write_solutions(type_inst, type_dir)
             
+            # Write lemma.variables.tsv file
+            self.write_variables(type_inst, type_dir)
+            
     def write_paths_json(self, type_inst, type_dir):
         self.paths = { "models": "{}.models.tsv".format(type_inst.lemma),
                        "solutions": "{}.solutions.tsv".format(type_inst.lemma),
-                       "modelsdist": "{}.models.dist.tsv".format(type_inst.lemma) }
+                       "modelsdist": "{}.models.dist.tsv".format(type_inst.lemma),
+                       "variables":"{}.variables.tsv".format(type_inst.lemma) }
         
         for dimension_reduction_technique in type_inst.dimension_reduction_techniques:
             self.paths[dimension_reduction_technique.name] = "{}.{}.tsv".format(type_inst.lemma, dimension_reduction_technique.name)
@@ -144,3 +148,13 @@ class TypeExporter:
             
         solutions_json_path = "{}{}".format(type_dir, self.paths["solutions"])
         FileWriter.write(solutions_json_path, solutions, content_type="json")
+
+    def write_variables(self, type_inst, type_dir):
+        rows = []
+
+        for token in type_inst.variables:
+            rows.append(token)
+
+        FileWriter.write("{}{}".format(type_dir, self.paths["variables"]),
+                         rows,
+                         content_type="tsv")

@@ -216,3 +216,6 @@ class Type:
         for dimension_reduction_technique in self.dimension_reduction_techniques:
             self.solutions[dimension_reduction_technique.name] = \
                     dimension_reduction_technique.reduce_model(model_matrix)
+
+    def attach_variables(self, variables):
+        self.variables = variables
