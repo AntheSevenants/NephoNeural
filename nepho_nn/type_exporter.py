@@ -134,7 +134,15 @@ class TypeExporter:
             rows = [] # will hold the rows for this technique
             
             for token_index in range(len(type_inst.token_list)):
-                row = { "_id": type_inst.token_ids[token_index] }
+                token_id = type_inst.token_ids[token_index]
+
+                # This token id does not have variables associated with it
+                # So we won't add it to the dataset (crash stopgap)
+                if not token_id in type_inst.token_ids_variables_available:
+                    print(f"Warning: Skipping {token_id}; token does not have associated variables")
+                    continue
+
+                row = { "_id": token_id }
                 for model_name in type_inst.model_names:
                     row["{}.x".format(model_name)] = type_inst.model_collection.models[model_name].solutions[dimension_reduction_technique.name][token_index][0]
                     row["{}.y".format(model_name)] = type_inst.model_collection.models[model_name].solutions[dimension_reduction_technique.name][token_index][1]

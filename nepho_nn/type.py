@@ -219,3 +219,8 @@ class Type:
 
     def attach_variables(self, variables):
         self.variables = variables
+
+        # NephoVis will crash if you have tokens for which no variables are available
+        # Here, we'll make a list of token ids for which variables are available
+        # There is no guideline for missing data yet, so this is more of a stopgap
+        self.token_ids_variables_available = list(map(lambda row: row["_id"], self.variables))
