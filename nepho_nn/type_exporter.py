@@ -161,8 +161,33 @@ class TypeExporter:
         rows = []
 
         for token in type_inst.variables:
+            # This is the only way for me to reliably get the correct sentence
+            # We can't use ids, because variable order and sentence order might not be the same
+            # (it's beyond my control, I don't have the original dataset :( )
+            filtered_sentences = list(filter(lambda sentence: sentence["token_id"] == token["_id"], type_inst.sentences))
+
+            if len(filtered_sentences) == 0:
+                print(f"Warning: Skipping {token['_id']} variables; variables do not have associated token")
+                continue
+
+            sentence = filtered_sentences[0]
+
+            # Now, create the raw context
+            token = { **token, "_ctxt.raw": self.generate_context(sentence["sentence"],
+                                                                  sentence["token_index"]) }
+
             rows.append(token)
 
         FileWriter.write("{}{}".format(type_dir, self.paths["variables"]),
                          rows,
                          content_type="tsv")
+
+    def generate_context(self, sentence, token_index):
+        # We don't want to change the original sentence, so we create a deep copy
+        sentence = sentence.copy()
+
+        # Highlight the focus token
+        sentence[token_index] = f"<span class='target'>{sentence[token_index]}</span>"
+
+        # Join everything together and return
+        return " ".join(sentence)
