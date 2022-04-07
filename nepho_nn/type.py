@@ -26,6 +26,9 @@ class Type:
         self.source = "hallo"
         self.sentences = sentences
 
+        if 0 in layer_indices:
+            raise ValueError("Embedding layer is not supported.")
+
         if len(self.sentences) < 4:
             print("Warning: level 3 dimension reduction may fail because fewer than 4 sentences are given.")
 
