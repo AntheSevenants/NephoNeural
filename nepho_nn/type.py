@@ -162,7 +162,7 @@ class Type:
                     token_embedding = embedding_retriever.get_token_embedding(0, j)
     
                     # Add it to the context word collection of the current model
-                    context_words[model_name].add(context_word, token_embedding)        
+                    context_words[model_name].add(context_word, token_embedding, i)        
 
         # Register each model
         for model_name in models:
