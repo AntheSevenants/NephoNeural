@@ -13,3 +13,9 @@ class Model:
         # --- Similarity matrices/vectors ---
         self.token_similarity_matrix = None
         self.model_similarity_vector = None
+
+        # --- Context words information ---
+        # Will hold the context words for this model, as well as their vectors
+        self.context_words = None
+        # Will hold the *reduced* word vectors (in low-dimensional space)
+        self.context_solutions = {}

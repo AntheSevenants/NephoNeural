@@ -4,6 +4,7 @@ import itertools
 from anthevec.anthevec.embedding_retriever import EmbeddingRetriever
 from .model_collection import ModelCollection
 from .model import Model
+from .context_words import ContextWords
 from tqdm.auto import tqdm
 
 from sklearn.metrics import pairwise_distances
@@ -65,6 +66,7 @@ class Type:
         self.model_names = self.model_collection.get_model_names()
 
         self.do_level_3_dimension_reduction()
+        self.do_level_3_dimension_reduction_context()
         self.create_similarity_matrices()
         self.create_distance_matrix()
         self.do_level_1_dimension_reduction()
@@ -83,6 +85,7 @@ class Type:
         
     def get_token_vectors(self):
         print("Retrieving hidden states for all tokens...")
+        print("Retrieving token embeddings for all context words...")
         
         token_vector_list = []
         
@@ -100,6 +103,7 @@ class Type:
         # Trust me. I've tried.
         models = {}
         models_meta = {}
+        context_words = {}
         for parameter_combination in self.parameter_combinations:
             model_name = self.get_model_name(parameter_combination)
 
@@ -110,6 +114,8 @@ class Type:
                                         "layer": f"layer{parameter_combination['layer_index']}",
                                         "head": f"head{parameter_combination['attention_head_index']}"
                                       }
+
+            context_words[model_name] = ContextWords()
 
 
         # Go over each corpus sentence for this type
@@ -143,12 +149,26 @@ class Type:
 
                 model_name = self.get_model_name(parameter_combination)
                 models[model_name].append(hidden_state)
-        
+
+                # Now, get all the token embeddings for the context words in this sentence
+                for j, token in enumerate(embedding_retriever.tokens[0]):
+                    context_word = token.lemma_
+
+                    # We of course skip the target word
+                    if j == token_index:
+                        continue
+    
+                    # Get the token embedding for this word
+                    token_embedding = embedding_retriever.get_token_embedding(0, j)
+    
+                    # Add it to the context word collection of the current model
+                    context_words[model_name].add(context_word, token_embedding)        
 
         # Register each model
         for model_name in models:
             model = Model(model_name, models_meta[model_name])
             model.hidden_states = models[model_name]
+            model.context_words = context_words[model_name]
 
             self.model_collection.register_model(model)
 
@@ -164,6 +184,19 @@ class Type:
             for dimension_reduction_technique in self.dimension_reduction_techniques:
                 self.model_collection.models[model_name].solutions[dimension_reduction_technique.name] = \
                     dimension_reduction_technique.reduce(layer_matrix)
+
+    def do_level_3_dimension_reduction_context(self):
+        print("Applying dimension reduction (level 3, context words)...")
+
+        # We go over each model
+        for model_name in tqdm(self.model_names):
+            # We create a numpy array
+            # rows = tokens, columns = dimensions of the context word vector of that model
+            model_matrix = np.array(self.model_collection.models[model_name].context_words.token_embeddings)
+
+            for dimension_reduction_technique in self.dimension_reduction_techniques:
+                self.model_collection.models[model_name].context_solutions[dimension_reduction_technique.name] = \
+                    dimension_reduction_technique.reduce(model_matrix)
             
     def create_similarity_matrices(self):
         print("Calculating similarity matrices...")

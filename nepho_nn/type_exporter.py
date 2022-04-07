@@ -4,6 +4,7 @@ import shutil
 from datetime import datetime
 
 from .file_writer import FileWriter
+from .helpers import flat_map, unique
 
 class TypeExporter:
     def __init__(self, output_dir, types):
@@ -66,6 +67,9 @@ class TypeExporter:
             # Write lemma.{solution}.tsv file
             self.write_solutions(type_inst, type_dir)
             
+            # Write lemma.{solution}.cws.tsv file
+            self.write_context_solutions(type_inst, type_dir)
+            
             # Write lemma.variables.tsv file
             self.write_variables(type_inst, type_dir)
             
@@ -77,6 +81,7 @@ class TypeExporter:
         
         for dimension_reduction_technique in type_inst.dimension_reduction_techniques:
             self.paths[dimension_reduction_technique.name] = "{}.{}.tsv".format(type_inst.lemma, dimension_reduction_technique.name)
+            self.paths[f"{dimension_reduction_technique.name}cws"] = "{}.{}.cws.tsv".format(type_inst.lemma, dimension_reduction_technique.name)
         
         FileWriter.write("{}paths.json".format(type_dir), self.paths, content_type="json")
         
@@ -156,6 +161,41 @@ class TypeExporter:
             
         solutions_json_path = "{}{}".format(type_dir, self.paths["solutions"])
         FileWriter.write(solutions_json_path, solutions, content_type="json")
+
+    def write_context_solutions(self, type_inst, type_dir):
+        # Go over each dimension reduction technique that was used for this type
+        for dimension_reduction_technique in type_inst.dimension_reduction_techniques:
+            rows = [] # will hold the rows for this technique
+
+            # Because each cw = one row, we need to amass the cws from all the models first
+            all_context_words = list(flat_map(lambda model_name: type_inst.model_collection.models[model_name].context_words.words,
+                                              type_inst.model_names))
+            # Now, we only want the unique values
+            all_context_words = unique(all_context_words)
+
+            # Start building the rows
+            for context_word in all_context_words:
+                row = { "_id": context_word }
+                for model_name in type_inst.model_names:
+                    # Get the index of this context word
+                    context_word_index = type_inst.model_collection.models[model_name].context_words.words.index(context_word)
+
+                    # If the context word actually appears in this model, use its coordinates
+                    if context_word in type_inst.model_collection.models[model_name].context_words.words:
+                        row["{}.x".format(model_name)] = type_inst.model_collection.models[model_name].context_solutions[dimension_reduction_technique.name][context_word_index][0]
+                        row["{}.y".format(model_name)] = type_inst.model_collection.models[model_name].context_solutions[dimension_reduction_technique.name][context_word_index][1]
+                    # Else, the context word is "lost"
+                    else:
+                        row["{}.x".format(model_name)] = 0
+                        row["{}.y".format(model_name)] = 0
+
+                rows.append(row)
+
+            # Each dimension reduction technique has its own file, so the file for this dimension reduction technique is done
+            FileWriter.write("{}{}".format(type_dir, self.paths[f"{dimension_reduction_technique.name}cws"]),
+                             rows,
+                             content_type="tsv")
+
 
     def write_variables(self, type_inst, type_dir):
         rows = []
