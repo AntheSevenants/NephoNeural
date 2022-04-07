@@ -59,13 +59,17 @@ class TypeExporter:
             
             # Write lemma.models.tsv file
             self.write_models(type_inst, type_dir)
+
+            # Write lemma.models.dist.tsv file
+            self.write_model_distances(type_inst, type_dir)
             
             # Write lemma.{solution}.tsv file
             self.write_solutions(type_inst, type_dir)
             
     def write_paths_json(self, type_inst, type_dir):
         self.paths = { "models": "{}.models.tsv".format(type_inst.lemma),
-                       "solutions": "{}.solutions.tsv".format(type_inst.lemma) }
+                       "solutions": "{}.solutions.tsv".format(type_inst.lemma),
+                       "modelsdist": "{}.models.dist.tsv".format(type_inst.lemma) }
         
         for dimension_reduction_technique in type_inst.dimension_reduction_techniques:
             self.paths[dimension_reduction_technique.name] = "{}.{}.tsv".format(type_inst.lemma, dimension_reduction_technique.name)
@@ -94,6 +98,22 @@ class TypeExporter:
             rows.append(row)
         
         FileWriter.write(models_json_path, rows, content_type="tsv")
+
+    def write_model_distances(self, type_inst, type_dir):
+        # We look at the giant distance matrix, and then turn it into the NephoVis-compatible format
+        rows = []
+
+        # Loop over all models (outer)
+        # = SOURCE for the distance matrix
+        for model_name in type_inst.model_names:
+            row = { "_model": model_name,
+                    **type_inst.model_collection.models[model_name].model_similarity_vector }
+
+            rows.append(row)
+
+        FileWriter.write("{}{}".format(type_dir, self.paths["modelsdist"]),
+                             rows,
+                             content_type="tsv")
         
     def write_medoids(self, type_inst, type_dir):
         pass
