@@ -196,25 +196,33 @@ class TypeExporter:
                              rows,
                              content_type="tsv")
 
-
     def write_variables(self, type_inst, type_dir):
         rows = []
 
-        for token in type_inst.variables:
-            # This is the only way for me to reliably get the correct sentence
+        # "token index" here refers to the index of the token in the list of tokens
+        # not the index in the sentence!
+        for token_index in range(len(type_inst.token_list)):
+            token_id = type_inst.token_ids[token_index]
+            sentence = type_inst.sentences[token_index]
+
+            # This is the only way for me to reliably get the correct variable record
             # We can't use ids, because variable order and sentence order might not be the same
             # (it's beyond my control, I don't have the original dataset :( )
-            filtered_sentences = list(filter(lambda sentence: sentence["token_id"] == token["_id"], type_inst.sentences))
+            filtered_variables = list(filter(lambda token: token_id == token["_id"], type_inst.variables))
 
-            if len(filtered_sentences) == 0:
-                print(f"Warning: Skipping {token['_id']} variables; variables do not have associated token")
+            if len(filtered_variables) == 0:
+                print(f"Warning: Skipping {token['_id']} variables; token does not have associated variables")
                 continue
 
-            sentence = filtered_sentences[0]
+            token = filtered_variables[0]
 
             # Now, create the raw context
             token = { **token, "_ctxt.raw": self.generate_context(sentence["sentence"],
                                                                   sentence["token_index"]) }
+
+            # Now, add the context words for this token for every model
+            for model_name in type_inst.model_names:
+                token[f"_cws.{model_name}"] = ";".join(type_inst.model_collection.models[model_name].context_words.words_in_sentence[token_index])
 
             rows.append(token)
 
