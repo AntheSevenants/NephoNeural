@@ -38,6 +38,7 @@ class Type:
         self.tokenizer = tokenizer
         self.nlp = nlp
         self.layer_indices = layer_indices
+        self.attention_threshold = 0.09
 
         # Dimension reduction 
         self.dimension_reduction_techniques = dimension_reduction_techniques
@@ -137,7 +138,8 @@ class Type:
             # Add the id for this token to the list of token ids
             self.token_ids.append(sentence["token_id"])
 
-            self.input_ids.append(embedding_retriever.input_ids.detach().numpy()[0])
+            input_ids = embedding_retriever.input_ids.detach().numpy()[0]
+            self.input_ids.append(input_ids)
 
             # Go over each parameter combination that was precomputed and get the hidden state
             for parameter_combination in self.parameter_combinations:
@@ -153,19 +155,36 @@ class Type:
                 model_name = self.get_model_name(parameter_combination)
                 models[model_name].append(hidden_state)
 
-                # Now, get all the token embeddings for the context words in this sentence
-                for j, token in enumerate(embedding_retriever.tokens[0]):
-                    context_word = token.lemma_
+                # To get the context word pieces, we request the attention distribution for our word
+                # for this parameter combination
+                attention_distribution = embedding_retriever.get_attention_weights(0,
+                                                                                   sentence["token_index"],
+                                                                                   parameter_combination["layer_index"],
+                                                                                   list(range(0, 12)))
 
-                    # We of course skip the target word
-                    if j == token_index:
-                        continue
-    
-                    # Get the token embedding for this word
-                    token_embedding = embedding_retriever.get_token_embedding(0, j)
-    
+                #print(max(attention_distribution))
+
+                # Attach word pieces and indices to attention values 
+                attention_distribution = list(zip(attention_distribution,
+                                              embedding_retriever.word_pieces[0],
+                                              list(range(0, len(attention_distribution)))))
+
+                # Now filter only those items which are above the required attention threshold
+                attention_distribution = list(filter(lambda attention_tuple: attention_tuple[0] >= self.attention_threshold,
+                                                     attention_distribution))
+
+                #print(len(attention_distribution))
+
+                # For each relevant context word
+                for attention_tuple in attention_distribution:
+                    word_piece_index = attention_tuple[2]
+                    context_word = f"{model_name}/{attention_tuple[1]}/{word_piece_index}"
+                    word_piece_embedding = embedding_retriever.get_word_piece_vector(0,
+                                                                                     word_piece_index,
+                                                                                     parameter_combination["layer_index"])
+
                     # Add it to the context word collection of the current model
-                    context_words[model_name].add(context_word, token_embedding, i)        
+                    context_words[model_name].add(context_word, word_piece_embedding, i)        
 
         # Register each model
         for model_name in models:

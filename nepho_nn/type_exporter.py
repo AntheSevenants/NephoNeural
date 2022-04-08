@@ -163,6 +163,35 @@ class TypeExporter:
         FileWriter.write(solutions_json_path, solutions, content_type="json")
 
     def write_context_solutions(self, type_inst, type_dir):
+        row_template = { "_id": None }
+        # By default, all context words are "lost"
+        for model_name in type_inst.model_names:
+            row_template["{}.x".format(model_name)] = 0
+            row_template["{}.y".format(model_name)] = 0
+
+        # Go over each dimension reduction technique that was used for this type
+        for dimension_reduction_technique in type_inst.dimension_reduction_techniques:
+            rows = [] # will hold the rows for this technique
+            for model_name in type_inst.model_names:
+                for context_word in type_inst.model_collection.models[model_name].context_words.words:
+                    # Get the index of this context word
+                    context_word_index = type_inst.model_collection.models[model_name].context_words.words.index(context_word)
+
+                    row = { **row_template,
+                            "_id": context_word,
+                            f"{model_name}.x": type_inst.model_collection.models[model_name].context_solutions[dimension_reduction_technique.name][context_word_index][0],
+                            f"{model_name}.y": type_inst.model_collection.models[model_name].context_solutions[dimension_reduction_technique.name][context_word_index][1]
+                          }
+
+                    rows.append(row)
+
+            # Each dimension reduction technique has its own file, so the file for this dimension reduction technique is done
+            FileWriter.write("{}{}".format(type_dir, self.paths[f"{dimension_reduction_technique.name}cws"]),
+                             rows,
+                             content_type="tsv")
+
+
+    def write_context_solutions_lemma(self, type_inst, type_dir):
         # Go over each dimension reduction technique that was used for this type
         for dimension_reduction_technique in type_inst.dimension_reduction_techniques:
             rows = [] # will hold the rows for this technique
@@ -221,8 +250,8 @@ class TypeExporter:
                                                                   sentence["token_index"]) }
 
             # Now, add the context words for this token for every model
-            for model_name in type_inst.model_names:
-                token[f"_cws.{model_name}"] = ";".join(type_inst.model_collection.models[model_name].context_words.words_in_sentence[token_index])
+            #for model_name in type_inst.model_names:
+            #    token[f"_cws.{model_name}"] = ";".join(type_inst.model_collection.models[model_name].context_words.words_in_sentence[token_index])
 
             rows.append(token)
 
