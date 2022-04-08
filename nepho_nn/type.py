@@ -93,6 +93,7 @@ class Type:
         self.token_list = []
         self.token_ids = []
         self.token_indices = []
+        self.input_ids = []
 
         # This is how it's gonna work. We will keep all vector data in a large dict.
         # key = model name
@@ -135,6 +136,8 @@ class Type:
             
             # Add the id for this token to the list of token ids
             self.token_ids.append(sentence["token_id"])
+
+            self.input_ids.append(embedding_retriever.input_ids.detach().numpy()[0])
 
             # Go over each parameter combination that was precomputed and get the hidden state
             for parameter_combination in self.parameter_combinations:
