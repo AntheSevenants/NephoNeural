@@ -252,8 +252,12 @@ class TypeExporter:
                                                                   sentence["token_index"]) }
 
             # Now, add the context words for this token for every model
-            #for model_name in type_inst.model_names:
-            #    token[f"_cws.{model_name}"] = ";".join(type_inst.model_collection.models[model_name].context_words.words_in_sentence[token_index])
+            for model_name in type_inst.model_names:
+                cws_string = ""
+                if token_index in type_inst.model_collection.models[model_name].context_words.words_in_sentence:
+                    cws_string = ";".join(type_inst.model_collection.models[model_name].context_words.words_in_sentence[token_index])
+                    
+                token[f"_cws.{model_name}"] = cws_string
 
             rows.append(token)
 
