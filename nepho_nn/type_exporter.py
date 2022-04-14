@@ -144,9 +144,9 @@ class TypeExporter:
 
                 # This token id does not have variables associated with it
                 # So we won't add it to the dataset (crash stopgap)
-                if not token_id in type_inst.token_ids_variables_available:
-                    print(f"Warning: {token_id} token does not have associated variables")
-                    if self.skip_novar_tokens:
+                if self.skip_novar_tokens:
+                    if not token_id in type_inst.token_ids_variables_available:
+                        print(f"Warning: Skipping {token_id}; token does not have associated variables")
                         continue
 
                 row = { "_id": token_id }
