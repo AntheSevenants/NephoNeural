@@ -242,7 +242,7 @@ class TypeExporter:
             filtered_variables = list(filter(lambda token: token_id == token["_id"], type_inst.variables))
 
             if len(filtered_variables) == 0:
-                print(f"Warning: Skipping {token['_id']} variables; token does not have associated variables")
+                print(f"Warning: Skipping {token_id} variables; token does not have associated variables")
                 continue
 
             token = filtered_variables[0]
