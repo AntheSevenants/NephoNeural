@@ -106,6 +106,7 @@ class Type:
         models = {}
         models_meta = {}
         context_words = {}
+        context_words_lemma = {}
         for parameter_combination in self.parameter_combinations:
             model_name = self.get_model_name(parameter_combination)
 
@@ -118,6 +119,7 @@ class Type:
                                       }
 
             context_words[model_name] = ContextWords()
+            context_words_lemma[model_name] = ContextWords()
 
 
         # Go over each corpus sentence for this type
@@ -179,18 +181,32 @@ class Type:
                 for attention_tuple in attention_distribution:
                     word_piece_index = attention_tuple[2]
                     context_word = f"{model_name}/{attention_tuple[1]}/{word_piece_index}"
+                    context_word_lemma = f"{model_name}/{attention_tuple[1]}/{word_piece_index}"
                     word_piece_embedding = embedding_retriever.get_word_piece_vector(0,
                                                                                      word_piece_index,
                                                                                      parameter_combination["layer_index"])
 
                     # Add it to the context word collection of the current model
-                    context_words[model_name].add(context_word, word_piece_embedding, i)        
+                    context_words[model_name].add(context_word, word_piece_embedding, i)
+
+                    # Resolve the word index to the token index
+                    # If SOS or EOS, there won't be any correspondence, so we override the lemma manually
+                    if word_piece_index in [0, len(embedding_retriever.word_pieces[0]) - 1]:
+                        context_word_lemma = "SOS" if word_piece_index == 0 else "EOS"
+                    # Else, we resolve as usual
+                    else:
+                        context_word_index = embedding_retriever.get_token_index_from_word_piece_index(0, word_piece_index)
+                        context_word_lemma = embedding_retriever.tokens[0][context_word_index].lemma_
+
+                    # Also add the context word lemma form (vector not needed)
+                    context_words_lemma[model_name].add(context_word_lemma, None, i)        
 
         # Register each model
         for model_name in models:
             model = Model(model_name, models_meta[model_name])
             model.hidden_states = models[model_name]
             model.context_words = context_words[model_name]
+            model.context_words_lemma = context_words_lemma[model_name]
 
             self.model_collection.register_model(model)
 

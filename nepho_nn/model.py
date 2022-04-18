@@ -17,5 +17,6 @@ class Model:
         # --- Context words information ---
         # Will hold the context words for this model, as well as their vectors
         self.context_words = None
+        self.context_words_lemma = None
         # Will hold the *reduced* word vectors (in low-dimensional space)
         self.context_solutions = {}
