@@ -254,11 +254,15 @@ class TypeExporter:
             # Now, add the context words for this token for every model
             for model_name in type_inst.model_names:
                 cws_string = ""
+                cwsl_string = ""
                 if token_index in type_inst.model_collection.models[model_name].context_words.words_in_sentence:
                     cws_string = ";".join(type_inst.model_collection.models[model_name].context_words.words_in_sentence[token_index])
+                    cwsl_string = ";".join(type_inst.model_collection.models[model_name].context_words_lemma.words_in_sentence[token_index])
                     
-                token[f"_cws.{model_name}"] = cws_string
+                token[f"_cws.{model_name}"] = cws_string.replace("Ġ", "")
+                token[f"_cwsl.{model_name}"] = cwsl_string
 
+                cwsl_string = ""
             rows.append(token)
 
         FileWriter.write("{}{}".format(type_dir, self.paths["variables"]),
