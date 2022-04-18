@@ -8,6 +8,7 @@ from .context_words import ContextWords
 from tqdm.auto import tqdm
 
 from sklearn.metrics import pairwise_distances
+from sklearn_extra.cluster import KMedoids
 
 class Type:
     def __init__(self,
@@ -17,6 +18,7 @@ class Type:
                  tokenizer,
                  nlp,
                  dimension_reduction_techniques,
+                 medoid_clusters,
                  layer_indices,
                  attention_head_indices=[ None ]):
         print("Processing \"{}\"".format(lemma))
@@ -71,6 +73,10 @@ class Type:
         self.create_similarity_matrices()
         self.create_distance_matrix()
         self.do_level_1_dimension_reduction()
+
+        self.medoids = None
+        if medoid_clusters:
+            self.do_medoid_clustering(medoid_clusters)
 
     # Put together the model name
     def get_model_name(self, parameter_combination):
@@ -287,6 +293,21 @@ class Type:
         for dimension_reduction_technique in self.dimension_reduction_techniques:
             self.solutions[dimension_reduction_technique.name] = \
                     dimension_reduction_technique.reduce_model(model_matrix)
+
+    def do_medoid_clustering(self, medoid_clusters):
+        print(f"Applying K-medoid clustering with {medoid_clusters} clusters...")
+
+        distance_matrix = []
+        for model_name in self.model_names:
+            row = list(map(lambda model_name_inner: self.model_collection.models[model_name].model_similarity_vector[model_name_inner],
+                           self.model_collection.models[model_name].model_similarity_vector))
+
+            distance_matrix.append(row)
+
+        medoids = KMedoids(medoid_clusters, metric="precomputed", method="pam").fit(distance_matrix)
+        
+        self.medoids = list(map(lambda medoid_index: self.model_names[medoid_index],
+                                medoids.medoid_indices_))
 
     def attach_variables(self, variables):
         self.variables = variables
