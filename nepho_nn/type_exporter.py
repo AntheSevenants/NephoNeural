@@ -73,12 +73,16 @@ class TypeExporter:
             
             # Write lemma.variables.tsv file
             self.write_variables(type_inst, type_dir)
+
+            # Write lemma.medoids.tsv file
+            self.write_medoids(type_inst, type_dir)
             
     def write_paths_json(self, type_inst, type_dir):
         self.paths = { "models": "{}.models.tsv".format(type_inst.lemma),
                        "solutions": "{}.solutions.tsv".format(type_inst.lemma),
                        "modelsdist": "{}.models.dist.tsv".format(type_inst.lemma),
-                       "variables":"{}.variables.tsv".format(type_inst.lemma) }
+                       "variables":"{}.variables.tsv".format(type_inst.lemma),
+                       "medoids": "{}.medoids.tsv".format(type_inst.lemma) }
         
         for dimension_reduction_technique in type_inst.dimension_reduction_techniques:
             self.paths[dimension_reduction_technique.name] = "{}.{}.tsv".format(type_inst.lemma, dimension_reduction_technique.name)
@@ -278,3 +282,15 @@ class TypeExporter:
 
         # Join everything together and return
         return " ".join(sentence)
+
+    def write_medoids(self, type_inst, type_dir):
+        if type_inst.medoids is None:
+            print("Skipping medoids; no medoids defined")
+            return
+
+        rows = [ { "medoid": medoid,
+                   "medoid_i": index + 1 } for index, medoid in enumerate(type_inst.medoids) ]
+
+        FileWriter.write("{}{}".format(type_dir, self.paths["medoids"]),
+                         rows,
+                         content_type="tsv")
