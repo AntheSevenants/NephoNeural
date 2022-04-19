@@ -298,6 +298,10 @@ class Type:
     def do_medoid_clustering(self, medoid_clusters):
         print(f"Applying K-medoid clustering with {medoid_clusters} clusters...")
 
+        if medoid_clusters > 9:
+            print(f"Warning: NephoVis can only inspect 9 models at a time. \
+                    You will be unable to inspect all {medoid_clusters} medoids at once.")
+
         distance_matrix = []
         for model_name in self.model_names:
             row = list(map(lambda model_name_inner: self.model_collection.models[model_name].model_similarity_vector[model_name_inner],
