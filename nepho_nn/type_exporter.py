@@ -86,7 +86,9 @@ class TypeExporter:
         
         for dimension_reduction_technique in type_inst.dimension_reduction_techniques:
             self.paths[dimension_reduction_technique.name] = "{}.{}.tsv".format(type_inst.lemma, dimension_reduction_technique.name)
-            self.paths[f"{dimension_reduction_technique.name}cws"] = "{}.{}.cws.tsv".format(type_inst.lemma, dimension_reduction_technique.name)
+
+            if type_inst.collect_context_words:
+                self.paths[f"{dimension_reduction_technique.name}cws"] = "{}.{}.cws.tsv".format(type_inst.lemma, dimension_reduction_technique.name)
         
         FileWriter.write("{}paths.json".format(type_dir), self.paths, content_type="json")
         
@@ -169,6 +171,10 @@ class TypeExporter:
         FileWriter.write(solutions_json_path, solutions, content_type="json")
 
     def write_context_solutions(self, type_inst, type_dir):
+        if not type_inst.collect_context_words:
+            return
+
+
         row_template = { "_id": None }
         # By default, all context words are "lost"
         for model_name in type_inst.model_names:
@@ -255,16 +261,17 @@ class TypeExporter:
             token = { **token, "_ctxt.raw": self.generate_context(sentence["sentence"],
                                                                   sentence["token_index"]) }
 
-            # Now, add the context words for this token for every model
             for model_name in type_inst.model_names:
-                cws_string = ""
-                cwsl_string = ""
-                if token_index in type_inst.model_collection.models[model_name].context_words.words_in_sentence:
-                    cws_string = ";".join(type_inst.model_collection.models[model_name].context_words.words_in_sentence[token_index])
-                    cwsl_string = ";".join(type_inst.model_collection.models[model_name].context_words_lemma.words_in_sentence[token_index])
-                    
-                token[f"_cws.{model_name}"] = cws_string.replace("Ġ", "")
-                token[f"_cwsl.{model_name}"] = cwsl_string
+                # Now, add the context words for this token for every model
+                if type_inst.collect_context_words:
+                    cws_string = ""
+                    cwsl_string = ""
+                    if token_index in type_inst.model_collection.models[model_name].context_words.words_in_sentence:
+                        cws_string = ";".join(type_inst.model_collection.models[model_name].context_words.words_in_sentence[token_index])
+                        cwsl_string = ";".join(type_inst.model_collection.models[model_name].context_words_lemma.words_in_sentence[token_index])
+                        
+                    token[f"_cws.{model_name}"] = cws_string.replace("Ġ", "")
+                    token[f"_cwsl.{model_name}"] = cwsl_string
 
                 cwsl_string = ""
             rows.append(token)

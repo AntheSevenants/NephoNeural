@@ -21,7 +21,8 @@ class Type:
                  dimension_reduction_techniques,
                  medoid_clusters,
                  layer_indices,
-                 attention_head_indices=[ None ]):
+                 attention_head_indices=[ None ],
+                 collect_context_words=True):
         print("Processing \"{}\"".format(lemma))
 
         # Type-related arguments
@@ -29,6 +30,7 @@ class Type:
         self.pos = "miep"
         self.source = "hallo"
         self.sentences = sentences
+        self.collect_context_words = collect_context_words
 
         if 0 in layer_indices:
             raise ValueError("Embedding layer is not supported.")
@@ -70,7 +72,10 @@ class Type:
         self.model_names = self.model_collection.get_model_names()
 
         self.do_level_3_dimension_reduction()
-        self.do_level_3_dimension_reduction_context()
+
+        if self.collect_context_words:
+            self.do_level_3_dimension_reduction_context()
+            
         self.create_similarity_matrices()
         self.create_distance_matrix()
         self.do_level_1_dimension_reduction()
@@ -164,6 +169,9 @@ class Type:
                 model_name = self.get_model_name(parameter_combination)
                 models[model_name].append(hidden_state)
 
+                if not self.collect_context_words:
+                    continue
+
                 # To get the context word pieces, we request the attention distribution for our word
                 # for this parameter combination
                 attention_distribution = embedding_retriever.get_attention_weights(0,
@@ -212,8 +220,10 @@ class Type:
         for model_name in models:
             model = Model(model_name, models_meta[model_name])
             model.hidden_states = models[model_name]
-            model.context_words = context_words[model_name]
-            model.context_words_lemma = context_words_lemma[model_name]
+
+            if self.collect_context_words:
+                model.context_words = context_words[model_name]
+                model.context_words_lemma = context_words_lemma[model_name]
 
             self.model_collection.register_model(model)
 
