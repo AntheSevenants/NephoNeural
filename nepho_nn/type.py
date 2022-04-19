@@ -5,6 +5,7 @@ from anthevec.anthevec.embedding_retriever import EmbeddingRetriever
 from .model_collection import ModelCollection
 from .model import Model
 from .context_words import ContextWords
+from .context_words_lemma import ContextWordsLemma
 from tqdm.auto import tqdm
 
 from sklearn.metrics import pairwise_distances
@@ -125,7 +126,7 @@ class Type:
                                       }
 
             context_words[model_name] = ContextWords()
-            context_words_lemma[model_name] = ContextWords()
+            context_words_lemma[model_name] = ContextWordsLemma()
 
 
         # Go over each corpus sentence for this type
@@ -205,7 +206,7 @@ class Type:
                         context_word_lemma = embedding_retriever.tokens[0][context_word_index].lemma_
 
                     # Also add the context word lemma form (vector not needed)
-                    context_words_lemma[model_name].add(context_word_lemma, None, i)        
+                    context_words_lemma[model_name].add(context_word_lemma, i)        
 
         # Register each model
         for model_name in models:
