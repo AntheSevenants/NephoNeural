@@ -1,3 +1,5 @@
+from .context_words import ContextWords
+
 class ContextWordsLemma(ContextWords):
 	def __init__(self):
 		super()
