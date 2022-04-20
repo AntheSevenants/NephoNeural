@@ -130,9 +130,6 @@ class TypeExporter:
         FileWriter.write("{}{}".format(type_dir, self.paths["modelsdist"]),
                              rows,
                              content_type="tsv")
-        
-    def write_medoids(self, type_inst, type_dir):
-        pass
     
     def write_solutions(self, type_inst, type_dir):       
         # Content of solutions.json:
