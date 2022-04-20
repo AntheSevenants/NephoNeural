@@ -22,6 +22,7 @@ class Type:
                  medoid_clusters,
                  layer_indices,
                  attention_head_indices=[ None ],
+                 mask_special_tokens=False,
                  collect_context_words=True):
         print("Processing \"{}\"".format(lemma))
 
@@ -31,6 +32,7 @@ class Type:
         self.source = "hallo"
         self.sentences = sentences
         self.collect_context_words = collect_context_words
+        self.mask_special_tokens = mask_special_tokens
 
         if 0 in layer_indices:
             raise ValueError("Embedding layer is not supported.")
@@ -141,7 +143,8 @@ class Type:
             embedding_retriever = EmbeddingRetriever(self.bert_model,
                                                      self.tokenizer,
                                                      self.nlp,
-                                                     [ sentence["sentence"] ])
+                                                     [ sentence["sentence"] ],
+                                                     mask_special_tokens=self.mask_special_tokens)
 
             # The index of the token is pre-supplied, so we can just take it from the sentence object
             token_index = sentence["token_index"]
