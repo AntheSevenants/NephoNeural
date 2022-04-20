@@ -1,5 +1,5 @@
 class DimensionReductionTechnique:
-    def __init__(self, name, settings=None):
+    def __init__(self, name, settings={}):
         self.name = name
         self.settings = settings
         
