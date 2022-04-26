@@ -214,7 +214,8 @@ class Type:
                     # Else, we resolve as usual
                     else:
                         context_word_index = embedding_retriever.get_token_index_from_word_piece_index(0, word_piece_index)
-                        context_word_lemma = embedding_retriever.tokens[0][context_word_index].lemma_
+                        context_word_lemma = f"{embedding_retriever.tokens[0][context_word_index].lemma_}/" + \
+                                             f"{embedding_retriever.tokens[0][context_word_index].pos_}"
 
                     # Also add the context word lemma form (vector not needed)
                     context_words_lemma[model_name].add(context_word_lemma, i)        
