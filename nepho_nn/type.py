@@ -198,7 +198,8 @@ class Type:
                 # For each relevant context word
                 for attention_tuple in attention_distribution:
                     word_piece_index = attention_tuple[2]
-                    context_word = f"{model_name}/{attention_tuple[1]}/{word_piece_index}"
+                    actual_context_word = attention_tuple[1].replace("Ġ", "")
+                    context_word = f"{model_name}/{i}/{actual_context_word}/{word_piece_index}"
                     context_word_lemma = f"{model_name}/{attention_tuple[1]}/{word_piece_index}"
                     word_piece_embedding = embedding_retriever.get_word_piece_vector(0,
                                                                                      word_piece_index,

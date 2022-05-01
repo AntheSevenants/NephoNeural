@@ -267,7 +267,7 @@ class TypeExporter:
                         cws_string = ";".join(type_inst.model_collection.models[model_name].context_words.words_in_sentence[token_index])
                         cwsl_string = ";".join(type_inst.model_collection.models[model_name].context_words_lemma.words_in_sentence[token_index])
                         
-                    token[f"_cws.{model_name}"] = cws_string.replace("Ġ", "")
+                    token[f"_cws.{model_name}"] = cws_string
                     token[f"_cwsl.{model_name}"] = cwsl_string
 
                 cwsl_string = ""
