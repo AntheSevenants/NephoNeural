@@ -181,9 +181,10 @@ bank_type.export_models("~/bert_matrices/")
 ```python
 from nepho_nn.dim_mds import DimMds
 from nepho_nn.dim_tsne import DimTsne
+from nepho_nn.dim_svd import DimSvd
 ```
 
-By default, NephoNeural comes with two dimension reduction techniques built in: MDS and tSNE. You can initialise a dimension reduction technique by importing it, and then simply initialising it.
+By default, NephoNeural comes with three dimension reduction techniques built in: MDS, tSNE and SVD. You can initialise a dimension reduction technique by importing it, and then simply initialising it.
 
 | parameter | type    | description                                      | example |
 | --------- | ------- | ------------------------------------------------ | -------| 
@@ -193,6 +194,7 @@ By default, NephoNeural comes with two dimension reduction techniques built in: 
 ```python
 dim_red_mds = DimMds("mds")
 dim_red_tsne = DimTsne("tsne30", { "perplexity": 30 })
+dim_red_svd = DimSvd("svd")
 ```
 
 #### Creating a new dimension reduction technique
