@@ -19,6 +19,7 @@ class Type:
                  bert_model,
                  tokenizer,
                  nlp,
+                 model_dimension_reduction_technique,
                  dimension_reduction_techniques,
                  medoid_clusters,
                  layer_indices,
@@ -49,6 +50,7 @@ class Type:
         self.attention_threshold = 0.09
 
         # Dimension reduction 
+        self.model_dimension_reduction_technique = model_dimension_reduction_technique
         self.dimension_reduction_techniques = dimension_reduction_techniques
 
         # We want to get a model for each combination of arguments
@@ -306,10 +308,9 @@ class Type:
         # Will hold all reduced distance matrices
         self.solutions = {}
 
-        # We do a dimension reduction on the distance matrix for each registered technique
-        for dimension_reduction_technique in self.dimension_reduction_techniques:
-            self.solutions[dimension_reduction_technique.name] = \
-                    dimension_reduction_technique.reduce_model(model_matrix)
+        # We do a dimension reduction on the distance matrix for the specified technique
+        dimension_reduction_technique = self.model_dimension_reduction_technique
+        self.solutions[dimension_reduction_technique.name] = dimension_reduction_technique.reduce_model(model_matrix)
 
     def do_medoid_clustering(self, medoid_clusters):
         print(f"Applying K-medoid clustering with {medoid_clusters} clusters...")
