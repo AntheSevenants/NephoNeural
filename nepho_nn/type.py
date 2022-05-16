@@ -342,4 +342,7 @@ class Type:
             # We create a numpy array
             # rows = tokens, columns = dimensions of the hidden state of that layer
             layer_matrix = np.array(self.model_collection.models[model_name].hidden_states)
-            np.save(f"{output_path}/{model_name}", self.soc_matrix)
+            np.save(f"{output_path}/{model_name}", layer_matrix)
+            
+        with open(f"{output_path}/token_ids.json", "wt") as writer:
+            writer.write(json.dumps(self.token_ids))
