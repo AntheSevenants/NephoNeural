@@ -138,7 +138,7 @@ To attach variables to a type, use the `attach_variables` method:
 
 | parameter | type    | description                                      | example |
 | --------- | ------- | ------------------------------------------------ | -------| 
-| variables | `list(dict)` | a list of dictionaries containing token information | see below for how to structure this dict | 
+| `variables` | list(dict) | a list of dictionaries containing token information | see below for how to structure this dict | 
 
 ```python
 with open("variables.json", "rt") as reader:
@@ -158,6 +158,21 @@ This is an example `variables.json` file. You can see that the file is simply a 
 ]
 ```
 Note: it is possible to not have variables for a specific token. Tokens without associated variables will show up as "NA" in NephoVis. Of course, having missing data is never a good thing...
+
+### Export token-by-feature matrices (hidden states)
+
+If you wish to export the raw, unreduced hidden states, you can do so using a type instance's `export_models` method. The following files will be exported:
+
+- `model_name.npy`: a numpy matrix with the tokens as rows and the hidden state values as columns
+- `token_ids.json`: a JSON file containing a list of all token ids, the indices of which correspond to the indices of the tokens in the numpy matrix
+
+| parameter | type    | description                                      | example |
+| --------- | ------- | ------------------------------------------------ | -------| 
+| `output_path` | str | the path to the directory where all models for this type will be exported | `"~/bert_matrices/"` | 
+
+```python
+bank_type.export_models("~/bert_matrices/")
+```
 
 ### Dimension reduction techniques
 
