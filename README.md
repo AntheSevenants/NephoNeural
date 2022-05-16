@@ -117,7 +117,8 @@ bank_type = Type(bank_corpus.lemma,
 ```
 - We create a type for the *bank* lemma by using the `bank_corpus` object we made earlier. We can pass its `lemma` and `sentences` properties first.
 - We supply the BERT model, its tokenizer and the spaCy tokenizer. To initialise these, refer to the [anthevec documentation](https://github.com/AntheSevenants/anthevec#prerequisites). Only the "Prerequisites" are relevant.
-- We supply a list of dimension reduction techniques. Two techniques, `DimTsne` and `DimMds` (for tSNE and MDS respectively) are included. You can easily program your own dimension reduction techniques if needed (see below).
+- We supply a dimension reduction technique for the moel.
+- We supply a list of dimension reduction techniques. Several techniques, among which `DimTsne` and `DimMds` (for tSNE and MDS respectively) are included. You can easily program your own dimension reduction techniques if needed (see below).
 - We declare that we want to find cluster centres ("medoids").
 - We define that we want to create models for layers 9, 10, 11 and 12.
 - We want to look at attenion head indices 0, 1, 2, 3, 4 and 5.
