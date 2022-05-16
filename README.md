@@ -94,6 +94,7 @@ There are quite a number of parameters needed to initialise a `Type`. The table 
 | `bert_model` | [transformers.model](https://huggingface.co/docs/transformers/main_classes/model) | a HuggingFace transformers model, initialised with hidden state output (and optionally attention output) | `RobertaForSequenceClassification.from_pretrained(MODEL_NAME, config=config)`|
 | `tokenizer` | [transformers.tokenizer](https://huggingface.co/docs/transformers/main_classes/tokenizer) | a HuggingFace transformers **fast** tokenizer | `RobertaTokenizerFast.from_pretrained(MODEL_NAME)`|
 | `nlp` | [spacy.lang](https://spacy.io/api/language)| a spaCy tokenizer, used for word tokenisation | `spacy.load("nl_core_news_sm")` |
+| `model_dimension_reduction_technique` | nepho_nn.DimensionReductionTechnique | a dimension reduction techniques which will be applied to the model distances | `DimMds("mds")` |
 | `dimension_reduction_techniques` | list(nepho_nn.DimensionReductionTechnique) | a list of dimension reduction techniques which will be applied to the token vectors | `[ DimTsne("tsne30"), DimMds("mds") ]` |
 | `medoid_clusters` | int | the number of medoids to be found (0 = disabled) | `3` |
 | `layer_indices` | list(int) | a list of the indices for which models are generated; ranges from 1-12, embedding layer `0` cannot be used | `[ 9, 10, 11, 12 ]` |
