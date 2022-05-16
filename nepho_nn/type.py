@@ -1,5 +1,6 @@
 import numpy as np
 import itertools
+import json
 
 from anthevec.anthevec.embedding_retriever import EmbeddingRetriever
 from .model_collection import ModelCollection
