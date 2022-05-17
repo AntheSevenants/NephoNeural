@@ -112,6 +112,7 @@ class Type:
         self.token_ids = []
         self.token_indices = []
         self.input_ids = []
+        self.attention_values = []
 
         # This is how it's gonna work. We will keep all vector data in a large dict.
         # key = model name
@@ -199,6 +200,7 @@ class Type:
                 #print(len(attention_distribution))
 
                 # For each relevant context word
+                attention_values_token = []
                 for attention_tuple in attention_distribution:
                     word_piece_index = attention_tuple[2]
                     actual_context_word = attention_tuple[1].replace("Ġ", "")
@@ -220,9 +222,13 @@ class Type:
                         context_word_index = embedding_retriever.get_token_index_from_word_piece_index(0, word_piece_index)
                         context_word_lemma = f"{embedding_retriever.tokens[0][context_word_index].lemma_}/" + \
                                              f"{embedding_retriever.tokens[0][context_word_index].pos_}"
+                        
+                        attention_values_token.append({ "index": context_word_index, "value": attention_tuple[0] })
 
                     # Also add the context word lemma form (vector not needed)
-                    context_words_lemma[model_name].add(context_word_lemma, i)        
+                    context_words_lemma[model_name].add(context_word_lemma, i)
+                
+                self.attention_values.append(attention_values_token)
 
         # Register each model
         for model_name in models:
