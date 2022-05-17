@@ -269,6 +269,10 @@ class TypeExporter:
                         
                     token[f"_cws.{model_name}"] = cws_string
                     token[f"_cwsl.{model_name}"] = cwsl_string
+                    
+                    token[f"_ctxt.{model_name}"] = self.generate_context(sentence["sentence"],
+                                                                         sentence["token_index"],
+                                                                         type_inst.attention_values[token_index])
 
                 cwsl_string = ""
             rows.append(token)
@@ -277,15 +281,27 @@ class TypeExporter:
                          rows,
                          content_type="tsv")
 
-    def generate_context(self, sentence, token_index):
+    def generate_context(self, sentence, token_index, attention_values=None):
         # We don't want to change the original sentence, so we create a deep copy
         sentence = sentence.copy()
 
         # Highlight the focus token
         sentence[token_index] = f"<span class='target'>{sentence[token_index]}</span>"
+        
+        # Generate contexts for other context words if attention values are given
+        if attention_values is not None:
+            for attention_value in attention_values:
+                index = attention_value["index"]
+                value = str(round(attention_value["value"], 2))
+                
+                # idk why this happens
+                if index >= len(sentence):
+                    continue
+                
+                sentence[index] = f"<strong>{sentence[index]}</strong><sup>{value}</sup>"
 
         # Join everything together and return
-        return " ".join(sentence)
+        return " ".join(sentence)       
 
     def write_medoids(self, type_inst, type_dir):
         if type_inst.medoids is None:
