@@ -124,7 +124,7 @@ bank_type = Type(bank_corpus.lemma,
 - We supply a list of dimension reduction techniques. Several techniques, among which `DimTsne` and `DimMds` (for tSNE and MDS respectively) are included. You can easily program your own dimension reduction techniques if needed (see below).
 - We declare that we want to find cluster centres ("medoids").
 - We define that we want to create models for layers 9, 10, 11 and 12.
-- We want to look at attenion head indices 0, 1, 2, 3, 4 and 5.
+- We want to look at attention head indices 0, 1, 2, 3, 4 and 5.
 - We will collect context words.
 
 Every combination of layer and attention head will be treated as a separate model. This means that you will always end up with n x m models (with n = number of layers, m = number of attention heads). If attention head weighting is disabled, you end up with as many models as you have layers defined.
