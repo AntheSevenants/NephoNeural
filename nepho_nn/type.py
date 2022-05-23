@@ -15,6 +15,7 @@ from sklearn_extra.cluster import KMedoids
 class Type:
     def __init__(self,
                  lemma,
+                 pos,
                  sentences,
                  bert_model,
                  tokenizer,
@@ -30,7 +31,7 @@ class Type:
 
         # Type-related arguments
         self.lemma = lemma
-        self.pos = "miep"
+        self.pos = pos
         self.source = "hallo"
         self.sentences = sentences
         self.collect_context_words = collect_context_words
@@ -154,7 +155,10 @@ class Type:
             token_index = sentence["token_index"]
     
             # Add this type instantiation / token to the list of tokens
-            self.token_list.append(embedding_retriever.tokens[0][token_index].text)
+            try:
+                self.token_list.append(embedding_retriever.tokens[0][token_index].text)
+            except:
+                print(sentence["sentence"])
             
             # Add the id for this token to the list of token ids
             self.token_ids.append(sentence["token_id"])

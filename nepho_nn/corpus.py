@@ -1,6 +1,7 @@
 class Corpus:
-	def __init__(self, lemma):
+	def __init__(self, lemma, pos):
 		self.lemma = lemma
+		self.pos = pos
 		self.sentences = []
 
 	# Sentence: the sentence where the token occurs (list!)

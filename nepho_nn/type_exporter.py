@@ -43,7 +43,7 @@ class TypeExporter:
                     "models": len(type_inst.model_names),
                     "stress": 0, # ???
                     "date": today_date,
-                    "part_of_speech": "miep" # todo
+                    "part_of_speech": type_inst.pos
                   }
             rows.append(row)
         
