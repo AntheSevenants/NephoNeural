@@ -43,9 +43,10 @@ NephoNeural collects all corpus example sentences of a specific type in a `Corpu
 | parameter | type    | description                                      | example |
 | --------- | ------- | ------------------------------------------------ | -------| 
 | `lemma` | str  | the type/lemma of interest around which all your corpus examples are centred | `"bank"` |
+| `pos` | str  | the POS tag of the type/lema of interest | `"noun"` |
 
 ```python
-bank_corpus = Corpus("bank")
+bank_corpus = Corpus("bank", "noun")
 ```
 
 #### Adding a sentence
@@ -90,6 +91,7 @@ There are quite a number of parameters needed to initialise a `Type`. The table 
 | parameter | type    | description                                      | example |
 | --------- | ------- | ------------------------------------------------ | -------| 
 | `lemma` | str | the type/lemma of interest around which all your corpus examples are centred | `"bank"` |
+| `pos` | str | the POS tag of the type/lema of interest | `"noun"` |
 | `sentences` | list(dict) | the collection of sentences from the `Corpus` object | `bank_corpus.sentences` |
 | `bert_model` | [transformers.model](https://huggingface.co/docs/transformers/main_classes/model) | a HuggingFace transformers model, initialised with hidden state output (and optionally attention output) | `RobertaForSequenceClassification.from_pretrained(MODEL_NAME, config=config)`|
 | `tokenizer` | [transformers.tokenizer](https://huggingface.co/docs/transformers/main_classes/tokenizer) | a HuggingFace transformers **fast** tokenizer | `RobertaTokenizerFast.from_pretrained(MODEL_NAME)`|
@@ -104,6 +106,7 @@ There are quite a number of parameters needed to initialise a `Type`. The table 
 This is what an instantiation would look like in practice: 
 ```python
 bank_type = Type(bank_corpus.lemma,
+                 bank_corpus.pos,
                  bank_corpus.sentences,
                  bert_model,
                  tokenizer,
@@ -115,7 +118,7 @@ bank_type = Type(bank_corpus.lemma,
                  attention_head_indices=[ 0, 1, 2, 3, 4, 5 ],
                  collect_context_words=True)
 ```
-- We create a type for the *bank* lemma by using the `bank_corpus` object we made earlier. We can pass its `lemma` and `sentences` properties first.
+- We create a type for the *bank* lemma by using the `bank_corpus` object we made earlier. We can pass its `lemma`, `pos` and `sentences` properties first.
 - We supply the BERT model, its tokenizer and the spaCy tokenizer. To initialise these, refer to the [anthevec documentation](https://github.com/AntheSevenants/anthevec#prerequisites). Only the "Prerequisites" are relevant.
 - We supply a dimension reduction technique for the moel.
 - We supply a list of dimension reduction techniques. Several techniques, among which `DimTsne` and `DimMds` (for tSNE and MDS respectively) are included. You can easily program your own dimension reduction techniques if needed (see below).
