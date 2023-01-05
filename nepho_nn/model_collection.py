@@ -1,4 +1,4 @@
-from nepho_nn.model import Model
+from .model import Model
 
 class ModelCollection:
     def __init__(self):
