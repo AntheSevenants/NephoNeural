@@ -1,5 +1,5 @@
 from sklearn.manifold import TSNE
-from nepho_nn.dimension_reduction_technique import DimensionReductionTechnique
+from .dimension_reduction_technique import DimensionReductionTechnique
 
 class DimTsne(DimensionReductionTechnique):
     def reduce(self, data):

@@ -1,5 +1,5 @@
 from sklearn.manifold import MDS
-from nepho_nn.dimension_reduction_technique import DimensionReductionTechnique
+from .dimension_reduction_technique import DimensionReductionTechnique
 
 class DimMds(DimensionReductionTechnique):
     def reduce(self, data):
